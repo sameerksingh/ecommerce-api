@@ -25,3 +25,6 @@ EXPOSE 5000
 
 # Command to run the Flask application
 CMD ["python", "main.py"]
+
+# Command to run the prepopulate script for db
+CMD ["python", "prepopulate.py"]

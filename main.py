@@ -25,14 +25,11 @@ app.include_router(order_views.router)
 @app.post("/api/login")
 async def login(payload: dict):
     # Authenticate user (replace with actual authentication logic)
-    try:
-        username = payload["username"]
-        password = payload["password"]
-        role = authenticate_creds(username,password)
-        token = create_jwt_token(username, role)
-        return {"access_token": token, "token_type": "bearer"}
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+    username = payload["username"]
+    password = payload["password"]
+    role = authenticate_creds(username, password)
+    token = create_jwt_token(username, role)
+    return {"access_token": token, "token_type": "bearer"}
 
 
 if __name__ == "__main__":

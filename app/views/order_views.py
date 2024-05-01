@@ -9,7 +9,7 @@ from app.models.cart import Cart
 router = APIRouter(tags=["order"])
 
 
-@router.get('/api/orders/')
+@router.get("/api/orders/")
 @has_role(["Admin"])
 async def get_orders(role: str = Depends(verify_token)):
     orders = OrderController.get_orders()
@@ -17,7 +17,7 @@ async def get_orders(role: str = Depends(verify_token)):
     return HTTPResponse(orders, 200)
 
 
-@router.get('/api/orders/{user_id}')
+@router.get("/api/orders/{user_id}")
 @has_role(["Admin", "Customer"])
 async def get_order_of_user(user_id: str, role: str = Depends(verify_token)):
     orders = OrderController.get_order_by_user_id(user_id)
@@ -25,7 +25,7 @@ async def get_order_of_user(user_id: str, role: str = Depends(verify_token)):
     return HTTPResponse(orders, 200)
 
 
-@router.put('/api/orders/place_order/{user_id}')
+@router.put("/api/orders/place_order/{user_id}")
 @has_role(["Admin", "Customer"])
 async def place_order(user_id: str, role: str = Depends(verify_token)):
     order_details = OrderController.place_order(user_id)

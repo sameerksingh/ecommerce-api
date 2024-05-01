@@ -1,15 +1,11 @@
 from app.models.product import ProductUpdate
 from app.models.order import Order
-from typing import Union, Any, Mapping, List
-from config import Config
-from pymongo import MongoClient
-from utils import document_to_model
+from typing import Union, List
+from utils import document_to_model, mongo_client
 from bson import ObjectId
 from app.controllers.cart_controller import CartController
 from app.controllers.product_controller import ProductController
 from datetime import datetime
-
-mongo_client: MongoClient[Mapping[str, Any] | Any] = MongoClient(Config.MONGO_URI)
 
 
 class OrderController:
@@ -38,7 +34,9 @@ class OrderController:
             Order: User's order details.
         """
         try:
-            orders = mongo_client.db.orders.find({"user_id": user_id}).sort({"timestamp": -1})
+            orders = mongo_client.db.orders.find({"user_id": user_id}).sort(
+                {"timestamp": -1}
+            )
             if orders:
                 return [document_to_model(Order, order) for order in orders]
             return None
@@ -70,15 +68,19 @@ class OrderController:
             if product.quantity > product_check.inventory:
                 product.quantity = product_check.inventory
             bill += product.quantity * product_check.price
-            updated_product_data = {"inventory": product_check.inventory - product.quantity}
-            ProductController.update_product(product.id, ProductUpdate(**updated_product_data))
+            updated_product_data = {
+                "inventory": product_check.inventory - product.quantity
+            }
+            ProductController.update_product(
+                product.id, ProductUpdate(**updated_product_data)
+            )
             product_dict = product_check.dict()
             product_dict["quantity"] = product.quantity
             del product_dict["inventory"]
             order_products.append(product_dict)
         order_dict = cart.dict()
         order_dict["products"] = order_products
-        order_dict["bill"] = round(bill,2)
+        order_dict["bill"] = round(bill, 2)
         order_dict["timestamp"] = datetime.now()
         order = Order(**order_dict)
         mongo_client.db.orders.insert_one(order.dict())

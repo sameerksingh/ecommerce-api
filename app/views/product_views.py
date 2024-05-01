@@ -6,7 +6,7 @@ from app.models.product import ProductWithoutId, ProductUpdate
 router = APIRouter(tags=["product"])
 
 
-@router.get('/api/products/')
+@router.get("/api/products/")
 @has_role(["Admin", "Customer"])
 async def get_products(role: str = Depends(verify_token)):
     print(role)
@@ -14,9 +14,11 @@ async def get_products(role: str = Depends(verify_token)):
     return HTTPResponse(content=products)
 
 
-@router.get('/api/products/{product_id}')
+@router.get("/api/products/{product_id}")
 @has_role(["Admin", "Customer"])
-async def get_product(product_id, by_name: bool = False, role: str = Depends(verify_token)):
+async def get_product(
+    product_id, by_name: bool = False, role: str = Depends(verify_token)
+):
     if by_name:
         product = ProductController.get_product_by_name(product_id)
     else:
@@ -27,16 +29,22 @@ async def get_product(product_id, by_name: bool = False, role: str = Depends(ver
         return HTTPResponse({"message": "Product not found"}, 404)
 
 
-@router.post('/api/products/')
+@router.post("/api/products/")
 @has_role(["Admin"])
-async def add_product(product_data: ProductWithoutId, role: str = Depends(verify_token)):
+async def add_product(
+    product_data: ProductWithoutId, role: str = Depends(verify_token)
+):
     product_id_data = ProductController.add_product(product_data)
     return HTTPResponse(product_id_data, 201)
 
 
-@router.patch('/api/products/{product_id}')
+@router.patch("/api/products/{product_id}")
 @has_role(["Admin"])
-async def update_product(product_id: str, updated_product_data: ProductUpdate, role: str = Depends(verify_token)):
+async def update_product(
+    product_id: str,
+    updated_product_data: ProductUpdate,
+    role: str = Depends(verify_token),
+):
     try:
         product = ProductController.update_product(product_id, updated_product_data)
         return HTTPResponse(product, 200)
@@ -44,7 +52,7 @@ async def update_product(product_id: str, updated_product_data: ProductUpdate, r
         return HTTPResponse({"message": e}, 404)
 
 
-@router.delete('/api/products/{product_id}')
+@router.delete("/api/products/{product_id}")
 @has_role(["Admin"])
 async def delete_product(product_id: str, role: str = Depends(verify_token)):
     deleted_status = ProductController.delete_product(product_id)

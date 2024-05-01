@@ -1,24 +1,20 @@
 from app.models.product import Product, ProductWithoutId, ProductUpdate
-from utils import document_to_model
+from utils import document_to_model, mongo_client
 from bson import ObjectId
-from typing import Union, Any, Mapping
-from config import Config
-from pymongo import MongoClient
-
-mongo_client: MongoClient[Mapping[str, Any] | Any] = MongoClient(Config.MONGO_URI)
+from typing import Union
 
 
 class ProductController:
     @staticmethod
     def get_all_products() -> list[Product]:
         products = list(mongo_client.db.products.find())
-        return [document_to_model(Product,product) for product in products]
+        return [document_to_model(Product, product) for product in products]
 
     @staticmethod
     def get_product_by_id(product_id: str) -> Union[Product, None]:
         product = mongo_client.db.products.find_one({"_id": ObjectId(product_id)})
         if product:
-            return document_to_model(Product,product)
+            return document_to_model(Product, product)
         else:
             return None
 
@@ -26,7 +22,7 @@ class ProductController:
     def get_product_by_name(product_name: str) -> Union[Product, None]:
         product = mongo_client.db.products.find_one({"name": product_name})
         if product:
-            return document_to_model(Product,product)
+            return document_to_model(Product, product)
         else:
             return None
 
@@ -38,7 +34,9 @@ class ProductController:
         return Product(**product_dict)
 
     @staticmethod
-    def update_product(product_id: str, updated_product_data: ProductUpdate) -> Union[Product, None]:
+    def update_product(
+        product_id: str, updated_product_data: ProductUpdate
+    ) -> Union[Product, None]:
         try:
             ObjectId(product_id)
         except Exception as e:
@@ -48,12 +46,13 @@ class ProductController:
 
         if not product:
             raise ValueError("Product not found")
-        new_product_data= {key: value for key, value in updated_product_data.dict().items() if value}
+        new_product_data = {
+            key: value for key, value in updated_product_data.dict().items() if value
+        }
         product.update(new_product_data)
 
         updated_product = mongo_client.db.products.update_one(
-            {"_id": ObjectId(product_id)},
-            {"$set": product}
+            {"_id": ObjectId(product_id)}, {"$set": product}
         )
 
         if updated_product.matched_count > 0:

@@ -16,9 +16,11 @@ class User_Fields(str, Enum):
 router = APIRouter(tags=["user"])
 
 
-@router.get('/api/users/{field}')
+@router.get("/api/users/{field}")
 @has_role(["Admin", "Customer"])
-async def get_user(field: str, by_email: User_Fields, role: str = Depends(verify_token)):
+async def get_user(
+    field: str, by_email: User_Fields, role: str = Depends(verify_token)
+):
     if by_email == "email":
         user = UserController.get_user_by_email(field)
     else:
@@ -29,7 +31,7 @@ async def get_user(field: str, by_email: User_Fields, role: str = Depends(verify
         return HTTPResponse({"message": "User not found"}, 404)
 
 
-@router.post('/api/users')
+@router.post("/api/users")
 async def create_user_endpoint(user: User):
     user.password = hash_password(user.password, user.salt)
     new_user = UserController.create_user(user)
@@ -39,7 +41,7 @@ async def create_user_endpoint(user: User):
     return HTTPResponse(new_user, 201)
 
 
-@router.put('/api/users/{user_id}')
+@router.put("/api/users/{user_id}")
 @has_role(["Admin"])
 async def update_user(user_id: str, user: User, role: str = Depends(verify_token)):
     updated_user = UserController.update_user(user_id, user)
@@ -49,7 +51,7 @@ async def update_user(user_id: str, user: User, role: str = Depends(verify_token
         return HTTPResponse({"message": "User not found"}, 404)
 
 
-@router.delete('/api/users/{user_id}')
+@router.delete("/api/users/{user_id}")
 @has_role(["Admin"])
 async def delete_user(user_id: str, role: str = Depends(verify_token)):
     deleted_status = UserController.delete_user(user_id)

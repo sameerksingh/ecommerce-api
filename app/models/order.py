@@ -13,6 +13,8 @@ class ProductInOrder(BaseModel):
 class Order(BaseModel):
     user_id: str
     timestamp: datetime
-    status: str = Field(choices=["Initiated", "Delivering", "Delivered"], default="Initiated")
+    status: str = Field(
+        choices=["Initiated", "Delivering", "Delivered"], default="Initiated"
+    )
     bill: float
     products: List[ProductInOrder]

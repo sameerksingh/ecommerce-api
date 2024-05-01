@@ -1,16 +1,32 @@
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from fastapi.security import  HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Depends, HTTPException
 from pymongo import MongoClient
 from config import Config
-from pydantic import BaseModel
 import jwt
 import datetime
 from functools import wraps
 import hashlib
+import os
 
-mongo_client = MongoClient(Config.MONGO_URI)
+MONGO_URI = os.environ.get("MONGO_URI")
+
+
+class Database:
+    _instance = None
+
+    def __new__(cls, uri):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.client = MongoClient(uri)
+        return cls._instance
+
+    def __getattr__(self, attr):
+        return getattr(self.client, attr)
+
+
+mongo_client = Database(MONGO_URI)
 
 
 def HTTPResponse(content: object = None, status_code: int = 200) -> object:
@@ -33,7 +49,7 @@ def HTTPResponse(content: object = None, status_code: int = 200) -> object:
 
 
 def document_to_model(YourModel, doc):
-    doc['id'] = str(doc.pop('_id'))
+    doc["id"] = str(doc.pop("_id"))
     return YourModel(**doc)
 
 
@@ -51,13 +67,25 @@ def hash_password(password, salt):
 def authenticate_creds(username: str, password: str):
     result = mongo_client.db.users.find_one({"email": username})
     if not result:
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise HTTPException(
+            status_code=401, detail="Invalid username" + username + ", " + password
+        )
     salt = result.get("salt")
     key = result.get("password")
     new_key = hash_password(password, salt)
-    if key==new_key:
+    if key == new_key:
         return result.get("role")
-    raise HTTPException(status_code=401, detail="Invalid username or password")
+    raise HTTPException(
+        status_code=401,
+        detail="Invalid username or password"
+        + salt
+        + ", "
+        + new_key
+        + ", "
+        + key
+        + ","
+        + result.get("role"),
+    )
 
 
 # Function to generate JWT token
@@ -68,10 +96,7 @@ def create_jwt_token(username: str, role: str) -> str:
     # Set the expiry time to 30 minutes from the current time
     expiry_time = current_time + datetime.timedelta(minutes=30)
 
-    data = {
-        "username": username,
-        "role": role
-    }
+    data = {"username": username, "role": role}
     # Generate the payload with the expiry time
     payload = {
         "sub": data,
@@ -112,7 +137,12 @@ def has_role(allowed_roles):
         async def wrapper(*args, role: str = "Customer", **kwargs):
             # Check if the role parameter is present in the list of allowed roles
             if role not in allowed_roles:
-                raise HTTPException(status_code=403, detail=f"Forbidden: User does not have required role(s): {', '.join(allowed_roles)}")
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Forbidden: User does not have required role(s): {', '.join(allowed_roles)}",
+                )
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator

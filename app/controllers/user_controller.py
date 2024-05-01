@@ -1,16 +1,12 @@
 from app.models.user import User, UserInDB
-from typing import Union, Any, Mapping
-from config import Config
-from pymongo import MongoClient
-from utils import document_to_model
+from typing import Union
+from utils import document_to_model, mongo_client
 from bson import ObjectId
-
-mongo_client: MongoClient[Mapping[str, Any] | Any] = MongoClient(Config.MONGO_URI)
 
 
 class UserController:
     @staticmethod
-    def get_user_by_email(email: str) -> Union[UserInDB,None]:
+    def get_user_by_email(email: str) -> Union[UserInDB, None]:
         """
         Retrieve a user by their email address.
         Args:
@@ -40,7 +36,7 @@ class UserController:
         if user_already_exist:
             return None
         mongo_client.db.users.insert_one(user_data)
-        return document_to_model(UserInDB,user_data)
+        return document_to_model(UserInDB, user_data)
 
     @staticmethod
     def get_user_by_id(user_id: str) -> User | None:
@@ -70,7 +66,9 @@ class UserController:
         Returns:
              user (User): Updated user
         """
-        result = mongo_client.db.users.replace_one({"_id": ObjectId(user_id)}, user.dict())
+        result = mongo_client.db.users.replace_one(
+            {"_id": ObjectId(user_id)}, user.dict()
+        )
         if result.modified_count > 0:
             return UserController.get_user_by_id(user_id)
         else:

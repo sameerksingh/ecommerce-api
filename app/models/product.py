@@ -1,19 +1,17 @@
 from pydantic import BaseModel
 
 
-class Product_update(BaseModel):
+class ProductUpdate(BaseModel):
     name: str | None = None
     price: float | None = None
+    inventory: int | None = None
 
-class Product_without_id(BaseModel):
+
+class ProductWithoutId(BaseModel):
     name: str
     price: float
+    inventory: int
 
-class Product(BaseModel):
-    name: str
-    price: float
-    id: str
 
-class ProductInCart(BaseModel):
-    quantity: int
+class Product(ProductWithoutId):
     id: str

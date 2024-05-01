@@ -1,7 +1,7 @@
 from app.controllers.product_controller import ProductController
 from fastapi import APIRouter, Depends
 from utils import HTTPResponse, verify_token, has_role
-from app.models.product import Product_without_id, Product_update
+from app.models.product import ProductWithoutId, ProductUpdate
 
 router = APIRouter(tags=["product"])
 
@@ -29,14 +29,14 @@ async def get_product(product_id, by_name: bool = False, role: str = Depends(ver
 
 @router.post('/api/products/')
 @has_role(["Admin"])
-async def add_product(product_data: Product_without_id, role: str = Depends(verify_token)):
+async def add_product(product_data: ProductWithoutId, role: str = Depends(verify_token)):
     product_id_data = ProductController.add_product(product_data)
     return HTTPResponse(product_id_data, 201)
 
 
 @router.patch('/api/products/{product_id}')
 @has_role(["Admin"])
-async def update_product(product_id: str, updated_product_data: Product_update, role: str = Depends(verify_token)):
+async def update_product(product_id: str, updated_product_data: ProductUpdate, role: str = Depends(verify_token)):
     try:
         product = ProductController.update_product(product_id, updated_product_data)
         return HTTPResponse(product, 200)

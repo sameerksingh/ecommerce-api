@@ -39,3 +39,12 @@ async def clear_cart(user_id: str, role: str = Depends(verify_token)):
     updated_cart = CartController.update_cart(Cart(user_id=user_id, products=[]))
     return HTTPResponse(updated_cart, 200)
 
+
+@router.put('/api/carts/{cart_id}')
+@has_role(["Admin", "Customer"])
+async def update_products(user_id: int, role: str = Depends(verify_token)):
+    try:
+        product = CartController.buy_cart(user_id)
+        return HTTPResponse(product, 200)
+    except ValueError as e:
+        return HTTPResponse({"message": e}, 404)

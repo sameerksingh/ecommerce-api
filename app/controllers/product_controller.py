@@ -1,4 +1,4 @@
-from app.models.product import Product, Product_without_id, Product_update
+from app.models.product import Product, ProductWithoutId, ProductUpdate
 from utils import document_to_model
 from bson import ObjectId
 from typing import Union, Any, Mapping
@@ -31,14 +31,14 @@ class ProductController:
             return None
 
     @staticmethod
-    def add_product(product: Product_without_id) -> Product:
+    def add_product(product: ProductWithoutId) -> Product:
         inserted_product = mongo_client.db.products.insert_one(product.dict())
         product_dict = product.dict()
         product_dict["id"] = str(inserted_product.inserted_id)
         return Product(**product_dict)
 
     @staticmethod
-    def update_product(product_id: str, updated_product_data: Product_update) -> Union[Product, None]:
+    def update_product(product_id: str, updated_product_data: ProductUpdate) -> Union[Product, None]:
         try:
             ObjectId(product_id)
         except Exception as e:
@@ -48,8 +48,8 @@ class ProductController:
 
         if not product:
             raise ValueError("Product not found")
-
-        product.update(updated_product_data.dict())
+        new_product_data= {key: value for key, value in updated_product_data.dict().items() if value}
+        product.update(new_product_data)
 
         updated_product = mongo_client.db.products.update_one(
             {"_id": ObjectId(product_id)},

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from app.controllers.user_controller import UserController
 from app.controllers.cart_controller import CartController
 from app.models.user import User
-from utils import HTTPResponse, verify_token, has_role
+from utils import HTTPResponse, verify_token, has_role, hash_password
 from enum import Enum
 
 
@@ -31,6 +31,7 @@ async def get_user(field: str, by_email: User_Fields, role: str = Depends(verify
 
 @router.post('/api/users')
 async def create_user_endpoint(user: User):
+    user.password = hash_password(user.password, user.salt)
     new_user = UserController.create_user(user)
     if not new_user:
         return HTTPResponse({"message": "This username is already in use"}, 409)
@@ -53,7 +54,7 @@ async def update_user(user_id: str, user: User, role: str = Depends(verify_token
 async def delete_user(user_id: str, role: str = Depends(verify_token)):
     deleted_status = UserController.delete_user(user_id)
     delete_cart_status = CartController.delete_cart(user_id)
-    if deleted_status:
+    if deleted_status and delete_cart_status:
         return HTTPResponse(status_code=204)
     else:
         return HTTPResponse({"message": "User id not found"}, 404)

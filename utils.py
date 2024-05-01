@@ -8,13 +8,9 @@ from pydantic import BaseModel
 import jwt
 import datetime
 from functools import wraps
+import hashlib
 
 mongo_client = MongoClient(Config.MONGO_URI)
-
-
-class User(BaseModel):
-    email: str
-    password: str
 
 
 def HTTPResponse(content: object = None, status_code: int = 200) -> object:
@@ -48,9 +44,20 @@ ALGORITHM = "HS256"
 bearer_scheme = HTTPBearer()
 
 
+def hash_password(password, salt):
+    return hashlib.sha256((password + salt).encode()).hexdigest()
+
+
 def authenticate_creds(username: str, password: str):
-    result = mongo_client.db.users.find_one({"email": username, "password": password})
-    return result.get("role")
+    result = mongo_client.db.users.find_one({"email": username})
+    if not result:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    salt = result.get("salt")
+    key = result.get("password")
+    new_key = hash_password(password, salt)
+    if key==new_key:
+        return result.get("role")
+    raise HTTPException(status_code=401, detail="Invalid username or password")
 
 
 # Function to generate JWT token
@@ -79,7 +86,7 @@ def decode_jwt_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.JWTError:
+    except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 

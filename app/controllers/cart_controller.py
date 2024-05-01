@@ -81,6 +81,10 @@ class CartController:
             mongo_client.db.carts.update_one(query, remove_operation)
 
         else:
+            product = ProductController().get_product_by_id(product_id)
+            if not product:
+                raise Exception("Product_id " + str(product_id) + " does not exist")
+            del product
             query = {
                 "user_id": user_id,
             }

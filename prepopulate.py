@@ -2,21 +2,9 @@ from utils import mongo_client, hash_password
 import secrets
 
 initial_products = [
-    {
-        "name": "Pencil",
-        "price": 1.50,
-        "inventory": 35
-    },
-    {
-        "name": "Pen",
-        "price": 10.00,
-        "inventory": 30
-    },
-    {
-        "name": "Scale",
-        "price": 15.00,
-        "inventory": 20
-    }
+    {"name": "Pencil", "price": 1.50, "inventory": 35},
+    {"name": "Pen", "price": 10.00, "inventory": 30},
+    {"name": "Scale", "price": 15.00, "inventory": 20},
 ]
 
 mongo_client.db.products.insert_many(initial_products)
@@ -28,7 +16,7 @@ TEST_USER = {
     "email": "test_user",
     "salt": TEST_SALT,
     "password": hash_password("Test_password1", TEST_SALT),
-    "role": "Admin"
+    "role": "Admin",
 }
 
 mongo_client.db.users.insert_one(TEST_USER)

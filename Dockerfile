@@ -6,10 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Set the working directory in the container
-WORKDIR /ecommerce
+WORKDIR /ecommerce-api
 
 # Copy the Pipfile and Pipfile.lock to the working directory
-COPY Pipfile Pipfile.lock /ecommerce/
+COPY Pipfile Pipfile.lock /ecommerce-api/
 
 # Install pipenv
 RUN pip install --no-cache-dir pipenv
@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir pipenv
 RUN pipenv install --deploy --system
 
 # Copy the content of the local src directory to the working directory
-COPY . /ecommerce/
+COPY . /ecommerce-api/
 
 # Expose port 5000 to the outside world
 EXPOSE 5000

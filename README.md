@@ -33,7 +33,32 @@ sudo apt install docker-compose
 brew install docker-compose
 ```
 
-3. Run the following command to start the services:
+3. Add a file docker-compose.yml with the following contents:
+```
+version: '3'
+
+services:
+  frontend:
+    build: ./ecommerce-ui
+    ports:
+      - "8080:8080"
+
+  backend:
+    build: ./ecommerce-api
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+```
+
+4. Run the following command to start the services:
 ```
 docker-compose up
 ```
